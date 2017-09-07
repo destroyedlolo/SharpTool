@@ -9,6 +9,7 @@
  *	09/04/2002	Creation
  *	------------- V 1.0 -----------
  *	19/10/2010	Add second bank of memory for 2500
+ *	07/09/2017	Bump version to hanle CPU frequency
  */
 
 #ifndef SHARP_TOOL_HXX
@@ -19,8 +20,8 @@
 #include <lflib/lfchaine.hxx>
 #include <cstdio>
 
-#define VERSION "sharptool V0.2 "__DATE__" "__TIME__
-#define CPR	"(c) L.Faillie	2002-10"
+#define VERSION "sharptool V0.3 "__DATE__" "__TIME__
+#define CPR	"(c) L.Faillie	2002-17"
 
 extern unsigned char memory[];	// external memory (to be changed for banked machines
 extern unsigned char memoryB1[];	// Bank1	

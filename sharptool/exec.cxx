@@ -42,7 +42,11 @@ static void ex_cmd_status(char *){
 		puts("*I* The LCD can be switched OFF");
 	if(trace)
 		puts("*I* tracing is enabled");
-	printf("*I* the machine type is %s\n", cpu ? cpu->type : "unknown");
+	if(cpu){
+		printf("*I* the machine type is %s\n", cpu->type);
+		printf("*I* CPU frequency %d khz\n", cpu->frequency);
+	} else
+		puts("*I* the machine is undefined");
 	if(*home)
 		printf("*I* Current home directory : '%s'\n", *home);
 	else

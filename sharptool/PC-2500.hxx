@@ -4,6 +4,7 @@
  *	cpu redefinition for PC-2500
  *
  *	19/10/2010	Creation
+ *	07/09/2017	Add CPU frequency
  */
 
 #ifndef PC2500_HXX
@@ -13,7 +14,7 @@
 
 	/* Japanees version of PC-2500 */
 struct pc2500K : virtual public pc1350K {
-	pc2500K() : CPU() { type = "2500K"; };
+	pc2500K() : CPU() { type = "2500K"; ; frequency=768; };
 
 	virtual unsigned char customkey(long int);
 	virtual bool numericKP(){ return true; };

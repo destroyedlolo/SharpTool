@@ -1,9 +1,10 @@
 /*
  * PC-1350.hxx
  *
- *	cpu redefinition for PC-1350
+ *	cpu redefinition for PC-1350(K)
  *
  *	14/08/2002	Creation
+ *	07/09/2017	Add CPU frequency
  */
 
 #ifndef PC1350_HXX
@@ -13,7 +14,7 @@
 
 	/* Japanees version of PC-1350 */
 struct pc1350K : virtual public CPU {
-	pc1350K() : CPU() { type = "1350K"; };
+	pc1350K() : CPU() { type = "1350K"; frequency=768; };
 
 	virtual void gui();
 	virtual void refresh_display();

@@ -7,6 +7,7 @@
  *	------------- V 2.0 -----------
  *	13/08/2002	Creation
  *	28/11/2010	Change keyboard code to ENUM in order to handle PC-2500
+ *	07/09/2017	Add frequency handling
  */
 #ifndef EMUL_HXX
 #define EMUL_HXX 1
@@ -18,7 +19,7 @@
 #include <cstdio>
 
 struct CPU {
-	CPU() : type(NULL){ init(); };
+	CPU() : type(NULL), frequency(0) { init(); };
 
 	virtual ~CPU();
 
@@ -39,6 +40,7 @@ struct CPU {
 	counter CT2;
 
 	const char *type;
+	unsigned short frequency;		// CPU frequence in khz
 
 /* I/O simulation */
 	lfchaine	ifch;
