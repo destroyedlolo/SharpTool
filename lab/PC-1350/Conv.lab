@@ -1,0 +1,13 @@
+&11B0	[BCD<-BIN unsigned]
+&11B7	[BCD<-BIN signed]
+&163A	[BIN unsigned<-BCD]
+&162F	[BIN signed<-BCD]
+&1633	[Line Number<-BCD]
+&162B	[Byte<-BCD]
+&1627	[Byte<-BCD not null]
+&1623	[String Position<-BCD]
+&161F	[String Position<-BCD not null]
+
+; ROM1 specific
+
+&F163	[Hexa DIGIT]

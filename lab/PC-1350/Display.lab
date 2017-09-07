@@ -1,0 +1,31 @@
+&04AD	[Display OFF]
+&04B1	[Display ON]
+
+&1DCF	[Display screen buffer]
+
+&788B	[CSR X position]
+&788C	[CSR Y position]
+
+&7880	[Working CSR X pos]
+&7881	[Working CSR Y pos]
+
+&807E	[Display one line of screen buffer]
+&801E	[Display XYZreg]
+&8015	[Clear display + '>']
+&1D5E	[Y<-@dr line screen buffer]
+&1CD0	[Y<-@dr line video]
+&1CEF	[Y<-video @dr of Working CSR]
+&02A3	[X <- screen buffer]
+&02AA	[Y <- screen buffer]
+
+&1C36	[Clear 1st screen buffer line]
+&1C3f	[Clear 2st screen buffer line]
+&1C44	[Clear 2 first screen buffer lines]
+&1E0C	[Clear screen buffer]
+
+&E23C	[scroll]
+&D10C	[scrolling avec test (a voir)]
+&E2DF	[Copy video]
+
+&E86E	[display CSR]
+

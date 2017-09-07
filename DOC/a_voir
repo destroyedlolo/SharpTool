@@ -1,0 +1,22 @@
+- si machine OFF -> on sort du mode GFX
+
+- voir si read readm sont sensible au bit 1 du port F (pour le moment : oui)
+- idem pour data (pour le moment : non)
+- voir si read modifie les flags (pour le moment : non)
+
+GUI_X.cxx
+- pourquoi le KeyPressMask | KeyReleaseMask ne fonctionne que sur la fenetre filles et non sur la top window ?
+- le 'StructureNotifyMask' ne fonctionne pas lorsque la fenetre est ferme :-(
+
+CPU.cxx
+- finir l'emulation des timer
+
+---- autres -----
+- INA et INB touche Z. Idem SL/SR
+- dans la table du 380 @6/7 = OFF
+
+
+---- obsolete -----
+GUI_X.cxx
+- Comment desallouer les couleurs ? 
+- Quelle est la valeur renvoye lorsque XCreatePixmap(echoue) ? 0 est-il une valeur valide ? Sinon, quelle valeur est invalide

@@ -1,0 +1,11 @@
+&14BD [LIDP Mem flags]
+&14C7 [LIDP Start BASIC pointer]
+&14CB [LIDP End BASIC pointer]
+
+&153B [LIDP indicators]
+&1543 [LIDP Keyboard Flags]	; &6F15
+
+&153F [LIDP &6F11]
+&1C2C [LIDP &6F17]
+&1D52 [LIDP &788F]
+&1D56 [LIDP &7886]

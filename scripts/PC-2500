@@ -1,0 +1,25 @@
+# configuration for a PC-2500
+
+echo --- Loading ROM ---
+load ~/ROM/2500_32k.bin
+loadB1 ~/ROM/2500_B1.bin
+load ~/ROM/2500_8k.bin
+
+#loadlab ~/lab/PC-2500/BASIC.lab
+#loadlab ~/lab/PC-2500/BCDreg.lab
+#loadlab ~/lab/PC-2500/Calc.lab
+#loadlab ~/lab/PC-2500/Conv.lab
+loadlab ~/lab/PC-2500/Display.lab
+loadlab ~/lab/PC-2500/ERROR.lab
+loadlab ~/lab/PC-2500/IO.lab
+loadlab ~/lab/PC-2500/KBD.lab
+loadlab ~/lab/PC-2500/LIDP.lab
+#loadlab ~/lab/PC-2500/sysmem.lab
+loadlab ~/lab/PC-2500/XY.lab
+#loadlab ~/lab/PC-2500/internal.lab
+
+echo --- configuring the machine ---
+prompt PC-2500>
+machine 2500
+ignore on
+

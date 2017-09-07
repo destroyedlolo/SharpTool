@@ -1,0 +1,20 @@
+&DBA8	[CLS]
+&C5ED	[CONT]
+&C30E	[BEEP]
+&C5D1	[AREAD]
+&BA8F	[BASIC]
+&FCA7	[CONSOLE]
+&BCC1	[CLEAR]
+&977E	[CLOAD]
+&95FC	[CSAVE]
+&FC97	[CLOSE]
+&C342	[CALL]
+&9723	[CHAINE]
+&F603	[LOAD]
+
+&B60A	[Tockenize]
+
+&09F5	[{End Basic} <- &FF]	; Y <- End Basic pointer
+&08CC	[NEW basic]	; clear end basic pointer and last merged
+&1517	[{Start Basic ptr} -> &6f1c/1d]
+&1521	[{Start Basic ptr} -> {Last merged}]

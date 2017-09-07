@@ -1,0 +1,10 @@
+&1C1C	[Clear input buffer]
+&0293	[X <- Input Buffer]
+&02B1	[Y <- Input Buffer]
+&11FE	[system GET]
+&1204	[GET]
+&8021	[system keyboard dispatcher]
+&0436	[raw inkey]
+&04DF	[Test OFF]
+
+&B5F8	[ROM1 : Remove last char input buffer]

@@ -1,0 +1,44 @@
+&04B3	[Out C <- {A}]
+&04BF	[power OFF]
+&04d8	[Auto power OFF]
+
+&094A	[K7 Send {A bit 0}]
+&094B	[K7 Send bit]
+&095D	[???? K7 send CS (N)]
+&0960	[K7 Send {A}]
+&0974	[???? K7 calc Checksum]
+&0981	[K7 send small carrier]
+&0985	[K7 Send carrier]
+
+&09E8	[Wait 6 ms]
+
+&0A00	[PRINT Save context]	; Sauve X et R (impression)
+
+&0A2C	[K=7, N=0]
+
+&0A48	[???? K7 send X*7]	; Send {X--}*7 + le CS correspondant
+
+&0A73	[TEST Din]	; C=1 si Din
+&0A83	[TEST /Din]	; C=1 si /Din
+&0A91	[Reset IO]	; Stop motor, reset port A,B,C,F and keyboard
+
+&8054	[Print XYZreg]
+&A4C9	[ROM 1: Print XYZreg]
+
+&A372	[ROM 1: Print {A}]	;
+&8045	[Test printer on]
+&A3D4	[Test printer on (ROM1)]
+
+&A467	[init printer]
+
+&9DD7	[K7 looking for carrier]
+&977E	[CLOAD]
+&9B12	[CLOAD M]
+&9CD8	[Display *]
+
+&1E43	[SIO parameters -> $d/$f]
+&F22A	[ROM 1: receive char SIO]
+&F16F	[ROM 1: Next char waiting ?]	;  /C if another char is received
+&F47F	[ROM 1: tokenize recv buffer]	; X & Y <- start of this buffer (display buffer)
+&F6F9	[ROM 1: recv buff, lect line number]
+

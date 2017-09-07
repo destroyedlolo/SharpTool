@@ -1,0 +1,11 @@
+; ROM Internal functions
+;
+
+&87FB	[ROM1 : fill Xreg test memory]	; Fill Xreg w/ &101112131415 (used to check the amough of memory
+&0569	[Memory test : cmp {DP w/ $16} *6]	; Check if Xreg was correctly stored
+
+&8789	[ROM1 : Check amough of memory]
+
+
+; Translation table for keyboard ([raw inkey] -> ASCII)
+&8403	[ROM1 : unqualified key tbl]

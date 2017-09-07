@@ -1,0 +1,28 @@
+# configuration for a PC-1350
+
+echo --- Loading ROM ---
+load ~/ROM/1350_32k.bin
+load ~/ROM/1350_8k.bin
+
+loadlab ~/lab/PC-1350/BASIC.lab
+loadlab ~/lab/PC-1350/BCDreg.lab
+loadlab ~/lab/PC-1350/Calc.lab
+loadlab ~/lab/PC-1350/Conv.lab
+loadlab ~/lab/PC-1350/Display.lab
+loadlab ~/lab/PC-1350/ERROR.lab
+loadlab ~/lab/PC-1350/IO.lab
+loadlab ~/lab/PC-1350/KBD.lab
+loadlab ~/lab/PC-1350/LIDP.lab
+loadlab ~/lab/PC-1350/sysmem.lab
+loadlab ~/lab/PC-1350/XY.lab
+loadlab ~/lab/PC-1350/internal.lab
+
+echo --- Loading ULM3 ---
+load ~/ROM/ULM3.bin
+loadlab ~/lab/PC-1350/ULM3.lab
+
+echo --- configuring the machine ---
+prompt PC-1350>
+machine 1350
+ignore on
+

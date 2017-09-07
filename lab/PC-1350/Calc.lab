@@ -1,0 +1,9 @@
+&08AC	[PI]
+&0BEC	[Xreg <- PI]
+
+&102f	[Push func]
+
+&8039	[read argument]
+&0AB8	[Int read argument]
+&1a54	[find variable]
+&1410	[Tst string]	; test if a value is a string
