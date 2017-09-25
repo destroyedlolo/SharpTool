@@ -108,7 +108,7 @@ static void ex_cmd_search(char *arg){
 			--dlen;; 
 	} else {	// Reading one or more byte
 puts("*F* not implemented");
-exit(0);
+exit(EXIT_FAILURE);
 	}
 
 	if(!dt || !dlen){
