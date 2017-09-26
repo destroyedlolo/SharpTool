@@ -163,7 +163,7 @@ void keyhandler ( Widget, XtPointer, XEvent *aEv, Boolean * ){
 			return;
 		#endif
 		default :
- printf("*D* %04x\n", ks);
+// printf("*D* %04x\n", ks);
 		if(!cpu->numericKP()){
 				switch(ks){
 			// numeric key
