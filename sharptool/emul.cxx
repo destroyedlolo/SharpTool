@@ -6,12 +6,27 @@
  *
  *	------------- V 2.0 -----------
  *	13/08/2002	Creation
+ *	26/09/2017	Add Cycle emulation
  */
 
 #include "emul.hxx"
 #include "sharptool.hxx"
 #include "address.hxx"
 #include "inst.hxx"
+
+#include <unistd.h>
+
+/* CPU frequency in khz = 10^3
+ * usleep unit = 10^-6
+ * Delay = c * 1000 / frc
+ */
+inline void cycle( unsigned short int c ){ // Emulates cycles
+	if(cpu->frequency){
+		useconds_t d = c*1000 / cpu->frequency;
+		usleep(d);
+	}
+}
+
 
 /*
  * instruction emulation ...
@@ -98,30 +113,35 @@ bool emul_panic(){
 }
 
 bool emul_lii(){
+	cycle(4);
 	cpu->I(cpu->pread(++(cpu->PC)));
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_lij(){
+	cycle(4);
 	cpu->J(cpu->pread(++(cpu->PC)));
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_lia(){
+	cycle(4);
 	cpu->A(cpu->pread(++(cpu->PC)));
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_lib(){
+	cycle(4);
 	cpu->B(cpu->pread(++(cpu->PC)));
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_ix(){
+	cycle(6);
 	cpu->DP = cpu->X()+1;
 	storebin16(4, cpu->DP);
 	cpu->Q=5;
@@ -130,6 +150,7 @@ bool emul_ix(){
 }
 
 bool emul_dx(){
+	cycle(6);
 	cpu->DP = cpu->X()-1;
 	storebin16(4, cpu->DP);
 	cpu->Q=5;
@@ -138,6 +159,7 @@ bool emul_dx(){
 }
 
 bool emul_iy(){
+	cycle(6);
 	cpu->DP = cpu->Y()+1;
 	storebin16(6, cpu->DP);
 	cpu->Q=7;
@@ -146,6 +168,7 @@ bool emul_iy(){
 }
 
 bool emul_dy(){
+	cycle(6);
 	cpu->DP = cpu->Y()-1;
 	storebin16(6, cpu->DP);
 	cpu->Q=7;
@@ -154,6 +177,7 @@ bool emul_dy(){
 }
 
 bool emul_mvw(){
+	cycle(5 + 2*cpu->I());
 	for(register char i=cpu->I()+1; i; i--){
 		cpu->internal[cpu->P++] = cpu->internal[cpu->Q++];
 		cpu->P &= 0x7f;
@@ -165,6 +189,7 @@ bool emul_mvw(){
 }
 
 bool emul_exw(){
+	cycle(6 + 3*cpu->I());
 	for(register char i=cpu->I()+1; i; i--){
 		unsigned char tmp=cpu->internal[cpu->P];
 		cpu->internal[cpu->P++] = cpu->internal[cpu->Q];
@@ -178,6 +203,7 @@ bool emul_exw(){
 }
 
 bool emul_mvb(){
+	cycle(5 + 2*cpu->J());
 	for(register char i=cpu->J()+1; i; i--){
 		cpu->internal[cpu->P++] = cpu->internal[cpu->Q++];
 		cpu->P &= 0x7f;
@@ -189,6 +215,7 @@ bool emul_mvb(){
 }
 
 bool emul_exb(){
+	cycle(6 + 3*cpu->J());
 	for(register char i=cpu->J()+1; i; i--){
 		unsigned char tmp=cpu->internal[cpu->P];
 		cpu->internal[cpu->P++] = cpu->internal[cpu->Q];
@@ -202,6 +229,7 @@ bool emul_exb(){
 }
 
 bool emul_adn(){
+	cycle(7 + 3*cpu->I());
 	unsigned short res = bcd2bin(cpu->A());
 	cpu->flags.Z = true;
 
@@ -222,6 +250,7 @@ bool emul_adn(){
 }
 
 bool emul_sbn(){
+	cycle(7 + 3*cpu->I());
 	unsigned short res = bcd2bin(cpu->A());
 	cpu->flags.Z = true;
 	cpu->flags.C = false;
@@ -249,6 +278,7 @@ bool emul_sbn(){
 }
 
 bool emul_adw(){
+	cycle(7 + 3*cpu->I());
 	unsigned short res = 0;
 	cpu->flags.Z = true;
 
@@ -270,6 +300,7 @@ bool emul_adw(){
 }
 
 bool emul_sbw(){
+	cycle(7 + 3*cpu->I());
 	unsigned short res = 0;
 	cpu->flags.Z = true;
 	cpu->flags.C = false;
@@ -298,6 +329,7 @@ bool emul_sbw(){
 }
 
 bool emul_lidp(){
+	cycle(8);
 	cpu->DP = cpu->pread(++(cpu->PC));
 	cpu->DP <<= 8;
 	cpu->DP += cpu->pread(++(cpu->PC));
@@ -306,6 +338,7 @@ bool emul_lidp(){
 }
 
 bool emul_libl(){
+	cycle(5);
 	cpu->DP &= 0xff00;
 	cpu->DP |= cpu->pread(++(cpu->PC));
 	++(cpu->PC);
@@ -313,18 +346,21 @@ bool emul_libl(){
 }
 
 bool emul_lip(){
+	cycle(4);
 	cpu->P = cpu->pread(++(cpu->PC)) & 0x7f;
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_liq(){
+	cycle(4);
 	cpu->Q = cpu->pread(++(cpu->PC)) & 0x7f;
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_adb(){
+	cycle(5);
 	unsigned long m = (unsigned long)readbin16(cpu->P) + (unsigned long)readbin16(2);
 
 	if(!(m & 0xffff))
@@ -344,6 +380,7 @@ bool emul_adb(){
 }
 
 bool emul_sbb(){
+	cycle(5);
 	unsigned long m = (unsigned long)readbin16(cpu->P) - (unsigned long)readbin16(2);
 
 	if(!(m & 0xffff))
@@ -363,6 +400,7 @@ bool emul_sbb(){
 }
 
 bool emul_mvwd(){
+	cycle(5 + 4*cpu->I());
 	for(register char i=cpu->I()+1; i; i--){
 		cpu->internal[cpu->P++] = cpu->read(cpu->DP++);
 		cpu->P &= 0x7f;
@@ -373,6 +411,7 @@ bool emul_mvwd(){
 }
 
 bool emul_exwd(){
+	cycle(7 + 6*cpu->I());
 	for(register char i=cpu->I()+1; i; i--){
 		unsigned char tmp=cpu->internal[cpu->P];
 		cpu->internal[cpu->P++] = cpu->read(cpu->DP);
@@ -385,6 +424,7 @@ bool emul_exwd(){
 }
 
 bool emul_mvbd(){
+	cycle(5 + 4*cpu->J());
 	for(register char i=cpu->J()+1; i; i--){
 		cpu->internal[cpu->P++] = cpu->read(cpu->DP++);
 		cpu->P &= 0x7f;
@@ -395,6 +435,7 @@ bool emul_mvbd(){
 }
 
 bool emul_exbd(){
+	cycle(7 + 6*cpu->J());
 	for(register char i=cpu->J()+1; i; i--){
 		unsigned char tmp=cpu->internal[cpu->P];
 		cpu->internal[cpu->P++] = cpu->read(cpu->DP);
@@ -407,6 +448,7 @@ bool emul_exbd(){
 }
 
 bool emul_srw(){
+	cycle(5 + cpu->I());
 	unsigned char tmp=0;
 	for(register char i=cpu->I()+1; i; i--){
 		tmp <<= 4;								// shift to carry to the upper cartet
@@ -420,6 +462,7 @@ bool emul_srw(){
 }
 
 bool emul_slw(){
+	cycle(5 + cpu->I());
 	unsigned char tmp=0;
 	for(register char i=cpu->I()+1; i; i--){
 		tmp >>= 4;
@@ -433,6 +476,7 @@ bool emul_slw(){
 }
 
 bool emul_film(){
+	cycle(5 + cpu->I());
 	for(register char i=cpu->I()+1; i; i--){
 		cpu->internal[cpu->P++] = cpu->A();
 		cpu->P &= 0x7f;
@@ -443,6 +487,7 @@ bool emul_film(){
 }
 
 bool emul_fild(){
+	cycle(4 + 3*cpu->I());
 	for(register char i=cpu->I()+1; i; i--)
 		cpu->write(cpu->DP++,cpu->A());
 
@@ -451,6 +496,7 @@ bool emul_fild(){
 }
 
 bool emul_ldp(){
+	cycle(2);
 	cpu->A(cpu->P);
 
 	++(cpu->PC);
@@ -458,6 +504,7 @@ bool emul_ldp(){
 }
 
 bool emul_ldq(){
+	cycle(2);
 	cpu->A(cpu->Q);
 
 	++(cpu->PC);
@@ -465,6 +512,7 @@ bool emul_ldq(){
 }
 
 bool emul_ldr(){
+	cycle(2);
 	cpu->A(cpu->R);
 
 	++(cpu->PC);
@@ -472,6 +520,7 @@ bool emul_ldr(){
 }
 
 bool emul_cla(){
+	cycle(2);
 	cpu->A(0);
 
 	++(cpu->PC);
@@ -479,6 +528,7 @@ bool emul_cla(){
 }
 
 bool emul_ixl(){
+	cycle(1);
 	emul_ix();
 	cpu->A(cpu->read(cpu->DP));
 
@@ -486,6 +536,7 @@ bool emul_ixl(){
 }
 
 bool emul_dxl(){
+	cycle(1);
 	emul_dx();
 	cpu->A(cpu->read(cpu->DP));
 
@@ -493,6 +544,7 @@ bool emul_dxl(){
 }
 
 bool emul_iys(){
+	cycle(1);
 	emul_iy();
 	cpu->write(cpu->DP, cpu->A());
 
@@ -500,6 +552,7 @@ bool emul_iys(){
 }
 
 bool emul_dys(){
+	cycle(1);
 	emul_dy();
 	cpu->write(cpu->DP, cpu->A());
 
@@ -507,43 +560,57 @@ bool emul_dys(){
 }
 
 bool emul_jrnzp(){
-	if(!cpu->flags.Z)
+	if(!cpu->flags.Z){
+		cycle(7);
 		cpu->PC += 1 + cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_jrnzm(){
-	if(!cpu->flags.Z)
+	if(!cpu->flags.Z){
+		cycle(7);
 		cpu->PC += 1 - cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_jrncp(){
-	if(!cpu->flags.C)
+	if(!cpu->flags.C){
+		cycle(7);
 		cpu->PC += 1 + cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_jrncm(){
-	if(!cpu->flags.C)
+	if(!cpu->flags.C){
+		cycle(7);
 		cpu->PC += 1 - cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_jrp(){
+	cycle(7);
 	cpu->PC += 1 + cpu->pread( cpu->PC+1 );
 	return true;
 }
 
 bool emul_jrm(){
+	cycle(7);
 	cpu->PC += 1 - cpu->pread( cpu->PC+1 );
 	return true;
 }
@@ -557,15 +624,19 @@ bool emul_loop(){
 		cpu->flags.C = true;
 
 	if(cpu->flags.C){
+		cycle(10);
 		cpu->PC +=2;
 		cpu->R = (cpu->R + 1) & 0x7F;
-	} else
+	} else {
+		cycle(7);
 		cpu->PC += 1 - cpu->pread( cpu->PC+1 );
+	}
 
 	return true;
 }
 
 bool emul_stp(){
+	cycle(2);
 	cpu->P = cpu->A();
 
 	++(cpu->PC);
@@ -573,6 +644,7 @@ bool emul_stp(){
 }
 
 bool emul_stq(){
+	cycle(2);
 	cpu->Q = cpu->A();
 
 	++(cpu->PC);
@@ -580,6 +652,7 @@ bool emul_stq(){
 }
 
 bool emul_str(){
+	cycle(2);
 	cpu->R = cpu->A();
 
 	++(cpu->PC);	
@@ -587,11 +660,13 @@ bool emul_str(){
 }
 
 bool emul_nop(){
+	cycle(2);
 	++(cpu->PC);	
 	return true;
 }
 
 bool emul_push(){
+	cycle(3);
 	--cpu->R;
 	cpu->R &= 0x7f;
 	
@@ -618,49 +693,64 @@ bool emul_data(){
 		cpu->P &= 0x7f;
 	}
 
-	++(cpu->PC);	
+	++(cpu->PC);
+	cycle(11 + 4*cpu->I());
 	return true;
 }
 
 bool emul_rtn(){
+	cycle(4);
 	cpu->PC = (cpu->internal[cpu->R+1] << 8) + cpu->internal[cpu->R];
 	cpu->R = (cpu->R + 2) & 0x7f;
 	return true;
 }
 
 bool emul_jrzp(){
-	if(cpu->flags.Z)
+	if(cpu->flags.Z){
+		cycle(7);
 		cpu->PC += 1 + cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_jrzm(){
-	if(cpu->flags.Z)
+	if(cpu->flags.Z){
+		cycle(7);
 		cpu->PC += 1 - cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_jrcp(){
-	if(cpu->flags.C)
+	if(cpu->flags.C){
+		cycle(7);
 		cpu->PC += 1 + cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_jrcm(){
-	if(cpu->flags.C)
+	if(cpu->flags.C){
+		cycle(7);
 		cpu->PC += 1 - cpu->pread( cpu->PC+1 );
-	else
+	} else {
+		cycle(4);
 		cpu->PC += 2;
+	}
 	return true;
 }
 
 bool emul_inci(){
+	cycle(4);
 	inc(0);
 
 	++(cpu->PC);	
@@ -668,6 +758,7 @@ bool emul_inci(){
 }
 
 bool emul_deci(){
+	cycle(4);
 	dec(0);
 
 	++(cpu->PC);	
@@ -675,6 +766,7 @@ bool emul_deci(){
 }
 
 bool emul_inca(){
+	cycle(4);
 	inc(2);
 
 	++(cpu->PC);	
@@ -682,6 +774,7 @@ bool emul_inca(){
 }
 
 bool emul_deca(){
+	cycle(4);
 	dec(2);
 
 	++(cpu->PC);
@@ -689,18 +782,21 @@ bool emul_deca(){
 }
 
 bool emul_adm(){
+	cycle(3);
 	cpu->internal[cpu->P]=updateflg(cpu->internal[cpu->P] + cpu->A());
 	++cpu->PC;
 	return true;
 }
 
 bool emul_sbm(){
+	cycle(3);
 	cpu->internal[cpu->P]=updateflg(cpu->internal[cpu->P] - cpu->A());
 	++cpu->PC;
 	return true;
 }
 
 bool emul_anma(){
+	cycle(3);
 	if(!(cpu->internal[cpu->P] &= cpu->A()))
 		cpu->flags.Z=true;
 	else
@@ -711,6 +807,7 @@ bool emul_anma(){
 }
 
 bool emul_orma(){
+	cycle(3);
 	if(!(cpu->internal[cpu->P] |= cpu->A()))
 		cpu->flags.Z=true;
 	else
@@ -721,6 +818,7 @@ bool emul_orma(){
 }
 
 bool emul_inck(){
+	cycle(4);
 	inc(8);
 
 	++(cpu->PC);	
@@ -728,6 +826,7 @@ bool emul_inck(){
 }
 
 bool emul_deck(){
+	cycle(4);
 	dec(8);
 
 	++(cpu->PC);	
@@ -735,6 +834,7 @@ bool emul_deck(){
 }
 
 bool emul_incm(){
+	cycle(4);
 	inc(0x0a);
 
 	++(cpu->PC);	
@@ -742,6 +842,7 @@ bool emul_incm(){
 }
 
 bool emul_decm(){
+	cycle(4);
 	dec(0x0a);
 
 	++(cpu->PC);	
@@ -749,6 +850,7 @@ bool emul_decm(){
 }
 
 bool emul_ina(){
+	cycle(2);
 	if(!(cpu->A(cpu->ina())))
 		cpu->flags.Z = 1;
 	else
@@ -759,19 +861,24 @@ bool emul_ina(){
 }
 
 bool emul_nopw(){
+	cycle(2);
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_wait(){
-	cpu->PC += 2;
+	cycle( 6 + cpu->pread(++(cpu->PC)));
+	++(cpu->PC);
 	return true;
 }
 
-bool emul_cup(  ){
-return true;}
+bool emul_cup(){
+	++(cpu->PC);
+	return true;
+}
 
 bool emul_incp(){
+	cycle(2);
 	++cpu->P;
 	cpu->P &= 0x7f;
 	
@@ -780,6 +887,7 @@ bool emul_incp(){
 }
 
 bool emul_decp(){
+	cycle(2);
 	--cpu->P;
 	cpu->P &= 0x7f;
 	
@@ -788,54 +896,63 @@ bool emul_decp(){
 }
 
 bool emul_std(){
+	cycle(2);
 	cpu->write(cpu->DP, cpu->A());
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_mvmd(){
+	cycle(3);
 	cpu->internal[cpu->P] = cpu->read(cpu->DP);
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_readm(){
+	cycle(3);
 	++(cpu->PC);
 	cpu->internal[cpu->P] = cpu->read(cpu->PC);
 	return true;
 }
 
 bool emul_mvdm(){
+	cycle(3);
 	cpu->write(cpu->DP, cpu->internal[cpu->P]); 
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_read(){
+	cycle(3);
 	++(cpu->PC);
 	cpu->internal[2] = cpu->read(cpu->PC);
 	return true;
 }
 
 bool emul_ldd(){
+	cycle(3);
 	cpu->internal[2] = cpu->read(cpu->DP);
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_swp(){
+	cycle(2);
 	cpu->internal[2] = (cpu->internal[2] << 4) | (cpu->internal[2] >> 4);
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_ldm(){
+	cycle(2);
 	cpu->internal[2] = cpu->internal[cpu->P];
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_sl(){
+	cycle(2);
 	bool nvC = cpu->A() & 0x80;
 	if(cpu->flags.C)
 		cpu->internal[2] = (cpu->A() << 1) | 1;
@@ -848,6 +965,7 @@ bool emul_sl(){
 }
 
 bool emul_pop(){
+	cycle(2);
 	cpu->internal[2] = cpu->internal[cpu->R++];
 	cpu->R &= 0x7f;
 
@@ -856,6 +974,7 @@ bool emul_pop(){
 }
 
 bool emul_outa(){
+	cycle(3);
 	cpu->outIA();
 
 	++(cpu->PC);
@@ -863,12 +982,14 @@ bool emul_outa(){
 }
 
 bool emul_outf(){
+	cycle(3);
 	cpu->outOutF();
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_anim(){
+	cycle(4);
 	if(!(cpu->internal[cpu->P] &= cpu->pread(++cpu->PC)))
 		cpu->flags.Z=true;
 	else
@@ -879,6 +1000,7 @@ bool emul_anim(){
 }
 
 bool emul_orim(){
+	cycle(4);
 	if(!(cpu->internal[cpu->P] |= cpu->pread(++cpu->PC)))
 		cpu->flags.Z=true;
 	else
@@ -889,6 +1011,7 @@ bool emul_orim(){
 }
 
 bool emul_tsim(){
+	cycle(4);
 	if(!(cpu->internal[cpu->P] & cpu->pread(++cpu->PC)))
 		cpu->flags.Z=true;
 	else
@@ -899,6 +1022,7 @@ bool emul_tsim(){
 }
 
 bool emul_cpim(){
+	cycle(4);
 	unsigned char t=cpu->internal[cpu->P], val=cpu->pread(++cpu->PC);
 	if( t < val){
 		cpu->flags.Z=false;
@@ -915,6 +1039,7 @@ bool emul_cpim(){
 }
 
 bool emul_ania(){
+	cycle(4);
 	if(!(cpu->internal[2] &= cpu->pread(++cpu->PC)))
 		cpu->flags.Z=true;
 	else
@@ -925,6 +1050,7 @@ bool emul_ania(){
 }
 
 bool emul_oria(){
+	cycle(4);
 	if(!(cpu->internal[2] |= cpu->pread(++cpu->PC)))
 		cpu->flags.Z=true;
 	else
@@ -935,6 +1061,7 @@ bool emul_oria(){
 }
 
 bool emul_tsia(){
+	cycle(4);
 	if(!(cpu->internal[2] & cpu->pread(++cpu->PC)))
 		cpu->flags.Z=true;
 	else
@@ -945,6 +1072,7 @@ bool emul_tsia(){
 }
 
 bool emul_cpia(){
+	cycle(4);
 	unsigned char t=cpu->A(), val=cpu->pread(++cpu->PC);
 	if(t < val){
 		cpu->flags.Z=false;
@@ -961,6 +1089,7 @@ bool emul_cpia(){
 }
 
 bool emul_case2(){
+	cycle(5 + 7*cpu->nbre_case);
 	for(register unsigned char i=cpu->nbre_case; i; i--){
 		if(cpu->pread(++cpu->PC) == cpu->A()){
 			unsigned short nvPC = cpu->pread(++cpu->PC);
@@ -977,7 +1106,8 @@ bool emul_case2(){
 	return(true);
 }
 
-bool emul_test(  ){
+bool emul_test(){
+	cycle(4);
 	unsigned char val = cpu->pread(++cpu->PC);
 	cpu->flags.Z=1;
 
@@ -1007,10 +1137,13 @@ bool emul_test(  ){
 	return true;
 }
 
-bool emul_cdn(  ){
-return true;}
+bool emul_cdn(){
+	++cpu->PC;
+	return true;
+}
 
 bool emul_adim(){
+	cycle(4);
 	cpu->internal[cpu->P]=updateflg(cpu->internal[cpu->P] + cpu->pread(++cpu->PC));
 	++cpu->PC;
 
@@ -1018,6 +1151,7 @@ bool emul_adim(){
 }
 
 bool emul_sbim(){
+	cycle(4);
 	cpu->internal[cpu->P]=updateflg(cpu->internal[cpu->P] - cpu->pread(++cpu->PC));
 	++cpu->PC;
 
@@ -1025,18 +1159,22 @@ bool emul_sbim(){
 }
 
 bool emul_adia(){
+	cycle(4);
 	cpu->A(updateflg(cpu->A() + cpu->pread(++cpu->PC)));
 	++cpu->PC;
 	return true;
 }
 
 bool emul_sbia(){
+	cycle(4);
 	cpu->A(updateflg(cpu->A() - cpu->pread(++cpu->PC)));
 	++cpu->PC;
 	return true;
 }
 
 bool emul_call(){
+	cycle(8);
+
 		// store the target address
 	unsigned short nvPC = cpu->pread(++(cpu->PC));
 	nvPC = (nvPC << 8) + cpu->pread(++(cpu->PC));
@@ -1054,6 +1192,7 @@ bool emul_call(){
 }
 
 bool emul_jp(){
+	cycle(6);
 	unsigned short nvPC = cpu->pread(++cpu->PC);
 	cpu->PC = (nvPC << 8) + cpu->pread(++cpu->PC);
 
@@ -1061,6 +1200,7 @@ bool emul_jp(){
 }
 
 bool emul_case1(){
+	cycle(9);
 	cpu->nbre_case = cpu->pread(++cpu->PC);
 	cpu->internal[--cpu->R] = cpu->pread(++cpu->PC);
 	cpu->internal[--cpu->R] = cpu->pread(++cpu->PC);
@@ -1071,6 +1211,7 @@ bool emul_case1(){
 }
 
 bool emul_jpnz(){
+	cycle(6);
 	if(!cpu->flags.Z){
 		unsigned short nvPC = cpu->pread(++(cpu->PC));
 		cpu->PC = (nvPC << 8) + cpu->pread(++(cpu->PC));
@@ -1080,6 +1221,7 @@ bool emul_jpnz(){
 }
 
 bool emul_jpnc(){
+	cycle(6);
 	if(!cpu->flags.C){
 		unsigned short nvPC = cpu->pread(++(cpu->PC));
 		cpu->PC = (nvPC << 8) + cpu->pread(++(cpu->PC));
@@ -1089,6 +1231,7 @@ bool emul_jpnc(){
 }
 
 bool emul_jpz(){
+	cycle(6);
 	if(cpu->flags.Z){
 		unsigned short nvPC = cpu->pread(++(cpu->PC));
 		cpu->PC = (nvPC << 8) + cpu->pread(++(cpu->PC));
@@ -1098,6 +1241,7 @@ bool emul_jpz(){
 }
 
 bool emul_jpc(){
+	cycle(6);
 	if(cpu->flags.C){
 		unsigned short nvPC = cpu->pread(++(cpu->PC));
 		cpu->PC = (nvPC << 8) + cpu->pread(++(cpu->PC));
@@ -1107,11 +1251,13 @@ bool emul_jpc(){
 }
 
 bool emul_lp(){
+	cycle(2);
 	cpu->P = cpu->pread(cpu->PC++) - 0x80;
 	return true;
 }
 
 bool emul_incj(){
+	cycle(4);
 	inc(1);
 
 	++(cpu->PC);
@@ -1119,6 +1265,7 @@ bool emul_incj(){
 }
 
 bool emul_decj(){
+	cycle(4);
 	dec(1);
 
 	++(cpu->PC);
@@ -1126,6 +1273,7 @@ bool emul_decj(){
 }
 
 bool emul_incb(){
+	cycle(4);
 	inc(3);
 
 	++(cpu->PC);
@@ -1133,6 +1281,7 @@ bool emul_incb(){
 }
 
 bool emul_decb(){
+	cycle(4);
 	dec(3);
 
 	++(cpu->PC);
@@ -1140,18 +1289,21 @@ bool emul_decb(){
 }
 
 bool emul_adcm(){
+	cycle(3);
 	cpu->internal[cpu->P]=updateflg(cpu->internal[cpu->P] + cpu->A() + (cpu->flags.C ? 1:0));
 	++cpu->PC;
 	return true;
 }
 
 bool emul_sbcm(){
+	cycle(3);
 	cpu->internal[cpu->P]=updateflg(cpu->internal[cpu->P] - cpu->A() - (cpu->flags.C ? 1:0));
 	++cpu->PC;
 	return true;
 }
 
 bool emul_tsma(){
+	cycle(3);
 	if(!(cpu->internal[cpu->P] & cpu->A()))
 		cpu->flags.Z=true;
 	else
@@ -1162,6 +1314,7 @@ bool emul_tsma(){
 }
 
 bool emul_cpma(){
+	cycle(3);
 	unsigned char m=cpu->internal[cpu->P], a=cpu->A();
 	if(m < a){
 		cpu->flags.Z=false;
@@ -1178,6 +1331,7 @@ bool emul_cpma(){
 }
 
 bool emul_incl(){
+	cycle(4);
 	inc(9);
 
 	++(cpu->PC);
@@ -1185,6 +1339,7 @@ bool emul_incl(){
 }
 
 bool emul_decl(){
+	cycle(4);
 	dec(9);
 
 	++(cpu->PC);
@@ -1192,6 +1347,7 @@ bool emul_decl(){
 }
 
 bool emul_incn(){
+	cycle(4);
 	inc(0x0b);
 
 	++(cpu->PC);
@@ -1199,6 +1355,7 @@ bool emul_incn(){
 }
 
 bool emul_decn(){
+	cycle(4);
 	dec(0x0b);
 
 	++(cpu->PC);
@@ -1206,6 +1363,7 @@ bool emul_decn(){
 }
 
 bool emul_inb(){
+	cycle(2);
 	if(!(cpu->A(cpu->inb())))
 		cpu->flags.Z = 1;
 	else
@@ -1216,11 +1374,13 @@ bool emul_inb(){
 }
 
 bool emul_nopt(){
+	cycle(3);
 	++(cpu->PC);	
 	return true;
 }
 
 bool emul_sc(){
+	cycle(2);
 	cpu->flags.C = true;
 	cpu->flags.Z = true;
 	++(cpu->PC);	
@@ -1228,6 +1388,7 @@ bool emul_sc(){
 }
 
 bool emul_rc(){
+	cycle(2);
 	cpu->flags.C = false;
 	cpu->flags.Z = true;
 	++(cpu->PC);	
@@ -1235,6 +1396,7 @@ bool emul_rc(){
 }
 
 bool emul_sr(){
+	cycle(2);
 	bool nvC = cpu->A() & 0x01;
 	if(cpu->flags.C)
 		cpu->internal[2] = (cpu->A() >> 1) | 0x80;
@@ -1248,11 +1410,13 @@ bool emul_sr(){
 }
 
 bool emul_write(){
+	cycle(2);	// Who know ????
 	++(cpu->PC);
 	return true;
 }
 
 bool emul_anid(){
+	cycle(6);
 	unsigned char res= cpu->read(cpu->DP) & cpu->pread(++cpu->PC);
 	if(!res)
 		cpu->flags.Z=true;
@@ -1264,6 +1428,7 @@ bool emul_anid(){
 }
 
 bool emul_orid(){
+	cycle(6);
 	unsigned char res= cpu->read(cpu->DP) | cpu->pread(++cpu->PC);
 	if(!res)
 		cpu->flags.Z=true;
@@ -1275,6 +1440,7 @@ bool emul_orid(){
 }
 
 bool emul_tsid(){
+	cycle(6);
 	if(!(cpu->read(cpu->DP) & cpu->pread(++cpu->PC)))
 		cpu->flags.Z=true;
 	else
@@ -1285,6 +1451,7 @@ bool emul_tsid(){
 }
 
 bool emul_cpid(){
+	cycle(6);
 	unsigned short t=cpu->read(cpu->DP), val=cpu->pread(++cpu->PC);
 	if(t < val){
 		cpu->flags.Z=false;
@@ -1301,6 +1468,7 @@ bool emul_cpid(){
 }
 
 bool emul_leave(){
+	cycle(2);
 	cpu->internal[cpu->R]=0;
 
 	++(cpu->PC);
@@ -1308,6 +1476,7 @@ bool emul_leave(){
 }
 
 bool emul_exab(){
+	cycle(3);
 	unsigned char tmp=cpu->A();
 	cpu->A(cpu->B());
 	cpu->B(tmp);
@@ -1317,6 +1486,7 @@ bool emul_exab(){
 }
 
 bool emul_exam(){
+	cycle(3);
 	unsigned char tmp=cpu->A();
 	cpu->A(cpu->internal[cpu->P]);
 	cpu->internal[cpu->P] = tmp;
@@ -1326,6 +1496,7 @@ bool emul_exam(){
 }
 
 bool emul_outb(){
+	cycle(2);
 	cpu->outIB();
 
 	++(cpu->PC);
@@ -1333,6 +1504,7 @@ bool emul_outb(){
 }
 
 bool emul_outc(){
+	cycle(2);
 	cpu->outOutC();
 
 	++(cpu->PC);
@@ -1340,6 +1512,7 @@ bool emul_outc(){
 }
 
 bool emul_cal(){
+	cycle(7);
 		// store the target address
 	unsigned short nvPC = cpu->pread(cpu->PC) - 0xe0;
 	nvPC = (nvPC << 8) + cpu->pread(++(cpu->PC));
